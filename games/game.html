@@ -3,14 +3,8 @@
   <head>
     <script
       defer
-      data-domain="sz-games.github.io"
+      data-domain="yeet-games.github.io"
       src="https://stats.senty.com.au/js/script.outbound-links.pageview-props.tagged-events.js"
-    ></script>
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3723218062742398"
-      crossorigin="anonymous"
-      data-ad-channel="9267153333"
     ></script>
     <script>
       window.plausible =
@@ -20,86 +14,14 @@
         }
     </script>
     <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
-    <link rel="icon" href="https://github.com/sz-games/home/blob/main/G.png?raw=true" />
-    <title>Sz Games - Game</title>
+    <link rel="icon" href="/logo.png" />
+    <title>Yeet Games - Game</title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('https://sz-games.github.io/service-worker.js')
-      }
-    </script>
 
-    <link rel="manifest" href="https://sz-games.github.io/manifest.json" />
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C78TXR0XFK"></script>
-    <script>
-      window.dataLayer = window.dataLayer || []
-      function gtag() {
-        dataLayer.push(arguments)
-      }
-      gtag('js', new Date())
-
-      gtag('config', 'G-C78TXR0XFK')
-    </script>
+    <link rel="manifest" href="/manifest.json" />
     <script src="/GobalSettings.js"></script>
-    <script src="https://stpd.cloud/assets/libraries/inview.min.js"></script>
-    <script>
-      inView.offset(-200)
-    </script>
-    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
-
-    <script>
-      window.googletag = window.googletag || { cmd: [] }
-
-      let interstitialSlot
-
-      googletag.cmd.push(() => {
-        interstitialSlot = googletag.defineOutOfPageSlot(
-          '/22921845643/SZ_Games_Interstitial',
-          googletag.enums.OutOfPageFormat.INTERSTITIAL
-        )
-
-        if (interstitialSlot) {
-          interstitialSlot.addService(googletag.pubads()).setConfig({
-            interstitial: {
-              triggers: {
-                navBar: true,
-                unhideWindow: true,
-              },
-            },
-          })
-        }
-
-        if (window.innerWidth >= 1200) {
-          googletag
-            .defineSlot(
-              '/147246189,22921845643/sz-games.github.io_300x600_desktop_side_right',
-              [
-                [300, 600],
-                [160, 600],
-                [300, 250],
-                [300, 300],
-              ],
-              'sz_games_github_io_sidebar_right_desktop'
-            )
-            .addService(googletag.pubads())
-        } else if (window.innerWidth >= 1024) {
-          googletag
-            .defineSlot(
-              '/147246189,22921845643/sz-games.github.io_160x600_desktop_side_right',
-              [
-                [160, 600],
-                [120, 600],
-              ],
-              'sz_games_github_io_sidebar_right_desktop'
-            )
-            .addService(googletag.pubads())
-        }
-        googletag.pubads().enableSingleRequest()
-        googletag.enableServices()
-      })
-    </script>
 
     <style>
       body {
@@ -332,7 +254,7 @@
       <div class="loading-screen">
         <div id="leftside" class="left-column">
           <div class="logo">
-            <img src="../G.png" alt="Logo" />
+            <img src="/logo.png" alt="Logo" />
           </div>
           <div class="loading-content">
             <div class="loading-circle"></div>
@@ -340,7 +262,7 @@
           </div>
 
           <div class="buttons">
-            <a href="../index.html">
+            <a href="/index.html">
               <button class="home-button">Home</button>
             </a>
             <button class="skip-loading" onclick="skipload()">Skip Loading</button>
@@ -467,14 +389,7 @@
         ></iframe>
       </div>
       <div class="sidebar">
-        <div id="sz_games_github_io_sidebar_right_desktop" class="side_ad_right">
-          <script>
-            googletag.cmd.push(function () {
-              googletag.display('sz_games_github_io_sidebar_right_desktop')
-            })
-          </script>
-        </div>
-        <div class="discord-container" style="margin: 20px; text-align: center">
+        <!-- <div class="discord-container" style="margin: 20px; text-align: center">
           <p style="font-size: 16px; margin-bottom: 10px; color: #7289da">
             <a
               href="https://discord.gg/XaEPUtUZ7G"
@@ -503,7 +418,7 @@
               Join Our Discord
             </a>
           </p>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -524,7 +439,7 @@
       <span
         class="material-icons buttonForMenu"
         style="margin: 5px"
-        onclick="window.location = 'https://sz-games.github.io'"
+        onclick="window.location = 'https://yeet-games.github.io'"
       >
         arrow_back
       </span>
@@ -615,11 +530,11 @@
       console.log(currentUrl.searchParams.get('game'))
     </script>
 
-    <script src="/optimizely.js"></script>
-    <script>
+    <!-- <script src="/optimizely.js"></script> -->
+    <!-- <script>
       googletag.cmd.push(function () {
         googletag.display(interstitialSlot)
       })
-    </script>
+    </script> -->
   </body>
 </html>
