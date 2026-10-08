@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YG-621: games.js and sitemap.xml check</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0 auto; max-width: 880px; padding: 24px; color: #1d1d1f; line-height: 1.5; }
+  h1 { font-size: 1.6em; margin-bottom: 0.2em; }
+  h2 { font-size: 1.2em; margin-top: 1.8em; border-bottom: 1px solid #d0d0d5; padding-bottom: 4px; }
+  .meta { color: #555; font-size: 0.92em; }
+  .answer { background: #f2f6fb; border-left: 4px solid #2b6cb0; padding: 12px 16px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.94em; }
+  th, td { border: 1px solid #d0d0d5; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #f4f4f6; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
+  pre { background: #f6f6f8; border: 1px solid #e2e2e6; padding: 10px; overflow-x: auto; white-space: pre-wrap; }
+  details { margin: 8px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  .ok { color: #1e6b34; font-weight: 600; }
+  .gap { color: #9b2c2c; font-weight: 600; }
+  svg { max-width: 100%; height: auto; }
+</style>
+</head>
+<body>
+
+<h1>games.js and sitemap.xml: game list check</h1>
+<p class="meta">Task YG-621. Branch task-1352 at commit 67c90b9. Checked files: <code>games.js</code>, <code>sitemap.xml</code>, <code>scripts/generate-sitemap.py</code>.</p>
+
+<h2>Summary</h2>
+<div class="answer">
+<p><strong>The sitemap and the catalog agree on the 13 game pages this repo serves.</strong> No page is in one list and missing from the other.</p>
+<p><strong>The sitemap has no broken URLs.</strong> All 18 sitemap URLs return HTTP 200 live.</p>
+<p><strong>The sitemap leaves out most catalog games.</strong> <code>games.js</code> has 381 entries. Of these, 329 point to paths that git does not track. The sitemap skips them by design. Many of these paths still return pages live.</p>
+<p><strong>One catalog link does not match its repo file.</strong> Backrooms links to <code>/Games/backrooms</code>. The tracked file is <code>games/backrooms.html</code>.</p>
+</div>
+
+<h2>Findings</h2>
+<ol>
+  <li><span class="ok">Match.</span> The 13 game pages in the sitemap are the same 13 HTML pages that <code>games.js</code> links inside this repo. See evidence section 4.</li>
+  <li><span class="ok">Match.</span> Every sitemap URL resolves to a tracked file. The live check returns 200 for all 18.</li>
+  <li><span class="gap">Gap.</span> 229 catalog paths return live HTML pages. The git tree does not track them, so the generator skips them. These are the largest difference. Examples: <code>/Games10/geodash/index.html</code>, <code>/Games/paperio2/index.html</code>, <code>/slope/</code>, <code>/home/webb/</code>.</li>
+  <li><span class="gap">Gap.</span> 41 catalog paths return 404 live. These are dead links in <code>games.js</code>. The sitemap does not list them, so the sitemap is not the cause. See the list in the evidence section.</li>
+  <li><span class="gap">Gap.</span> Backrooms: <code>games.js</code> links <code>/Games/backrooms</code> (capital G). The tracked page is <code>games/backrooms.html</code> (lowercase). The sitemap lists neither path. Live, <code>/games/backrooms.html</code> returns 200.</li>
+  <li><span>Expected.</span> 58 untracked catalog paths are live <code>.swf</code> files. The generator skips non-HTML files by design. Separately, 8 tracked <code>.swf</code> entries exist in the repo, and they are also skipped.</li>
+  <li><span>Expected.</span> 30 catalog entries point to other hosts. The sitemap does not list other hosts by design.</li>
+</ol>
+
+<h2>Count of catalog entries</h2>
+<p>The 381 entries split into five groups. The bar below shows each group's share.</p>
+<svg viewBox="0 0 800 100" role="img" aria-label="Catalog entries by group: 329 not tracked, 30 other hosts, 8 tracked swf, 14 tracked HTML">
+  <rect x="0" y="10" width="690" height="36" fill="#9aa9bd"/>
+  <rect x="690" y="10" width="63" height="36" fill="#c9a66b"/>
+  <rect x="753" y="10" width="17" height="36" fill="#7fb38a"/>
+  <rect x="770" y="10" width="29" height="36" fill="#2b6cb0"/>
+  <text x="0" y="66" font-size="13" fill="#1d1d1f">329 not tracked (grey)</text>
+  <text x="690" y="66" font-size="13" fill="#1d1d1f">30 other hosts</text>
+  <text x="799" y="88" font-size="13" text-anchor="end" fill="#1d1d1f">blue: 14 tracked HTML; green: 8 tracked swf</text>
+</svg>
+<table>
+  <tr><th>Group</th><th>Entries</th><th>In sitemap?</th></tr>
+  <tr><td>Other host (external URL)</td><td>30</td><td>No, by design</td></tr>
+  <tr><td>Tracked HTML pages in this repo</td><td>14 (13 game pages plus roblox.html)</td><td>Yes</td></tr>
+  <tr><td>Tracked <code>.swf</code> files in this repo</td><td>8</td><td>No, not HTML</td></tr>
+  <tr><td>Own-host path not tracked in git</td><td>329 (328 distinct paths)</td><td>No, skipped by generator</td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>381</strong></td><td></td></tr>
+</table>
+<p class="meta">One path is shared by two entries, so 329 entries give 328 distinct paths.</p>
+
+<h2>Live status of the 328 untracked paths</h2>
+<table>
+  <tr><th>Live result</th><th>Count</th></tr>
+  <tr><td>HTML or directory page (200, or 301 then 200)</td><td>229</td></tr>
+  <tr><td><code>.swf</code> file (200)</td><td>58</td></tr>
+  <tr><td>404</td><td>41</td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>328</strong></td></tr>
+</table>
+
+<h2>Next steps</h2>
+<ol>
+  <li>Ask the owner where the untracked paths come from. The live site serves them, but git master does not track them. Confirm whether they should be in the sitemap.</li>
+  <li>If they should be listed, change <code>scripts/generate-sitemap.py</code> to read a source other than git-tracked files. Then run it again and commit the new <code>sitemap.xml</code>.</li>
+  <li>Change the Backrooms link in <code>games.js</code> to <code>games/backrooms.html</code>, or confirm that <code>/Games/backrooms</code> is the page to keep. Then decide whether it goes in the sitemap.</li>
+  <li>Fix or remove the 41 dead links listed below.</li>
+  <li>Do not change the sitemap for the 41 dead links. They are not in it.</li>
+</ol>
+<p>This check changed no site files. It made no deploy, no push and no DNS or Cloudflare change.</p>
+
+<h2>Evidence</h2>
+
+<h3>1. Generator check passes</h3>
+<p>Command. The system <code>python3</code> on this machine fails before it runs the script. Its mise config file has a parse error. The command below uses <code>/usr/bin/python3</code> instead.</p>
+<pre>$ /usr/bin/python3 scripts/generate-sitemap.py --check
+sitemap.xml is current (18 URLs)
+exit=0</pre>
+
+<h3>2. Catalog counts</h3>
+<pre>$ grep -c "url:" games.js
+381
+$ grep -c "name:" games.js
+381</pre>
+
+<h3>3. Sitemap URLs and files</h3>
+<p>Each sitemap <code>&lt;loc&gt;</code> maps to a file in the tree. No file is missing.</p>
+<pre>sitemap locs: 18 | missing files: []</pre>
+<table>
+  <tr><th>Sitemap URL</th><th>Tracked file</th><th>Live status</th></tr>
+  <tr><td>/</td><td>index.html</td><td>200</td></tr>
+  <tr><td>/roblox.html</td><td>roblox.html</td><td>200</td></tr>
+  <tr><td>/games/agario.html</td><td>games/agario.html</td><td>200</td></tr>
+  <tr><td>/games/Bin/Game_file/call/hydra/</td><td>games/Bin/Game_file/call/hydra/index.html</td><td>200</td></tr>
+  <tr><td>/games/bloxx.html</td><td>games/bloxx.html</td><td>200</td></tr>
+  <tr><td>/games/chess/</td><td>games/chess/index.html</td><td>200</td></tr>
+  <tr><td>/games/dino/</td><td>games/dino/index.html</td><td>200</td></tr>
+  <tr><td>/games/dungeon.html</td><td>games/dungeon.html</td><td>200</td></tr>
+  <tr><td>/games/rooftop-snipers/</td><td>games/rooftop-snipers/index.html</td><td>200</td></tr>
+  <tr><td>/games/spac/</td><td>games/spac/index.html</td><td>200</td></tr>
+  <tr><td>/games/spacesh/</td><td>games/spacesh/index.html</td><td>200</td></tr>
+  <tr><td>/games/stack/</td><td>games/stack/index.html</td><td>200</td></tr>
+  <tr><td>/games/tunnel-rush/</td><td>games/tunnel-rush/index.html</td><td>200</td></tr>
+  <tr><td>/games/woods.html</td><td>games/woods.html</td><td>200</td></tr>
+  <tr><td>/games/zombie/</td><td>games/zombie/index.html</td><td>200</td></tr>
+  <tr><td>/contact.html</td><td>contact.html</td><td>200</td></tr>
+  <tr><td>/Privacy-Policy.html</td><td>Privacy-Policy.html</td><td>200</td></tr>
+  <tr><td>/terms-of-service.html</td><td>terms-of-service.html</td><td>200</td></tr>
+</table>
+<pre>$ curl -s -o /dev/null -m 15 -w '%{http_code}' &lt;each sitemap URL&gt;
+18 of 18 return 200</pre>
+
+<h3>4. Catalog links that match the sitemap</h3>
+<p>The check resolved each <code>games.js</code> URL. Loader links such as <code>games/game.html?game=...</code> were unwrapped first. The 13 game pages below are the only tracked HTML pages that <code>games.js</code> links.</p>
+<pre>games/Bin/Game_file/call/hydra/index.html   games/agario.html        games/bloxx.html
+games/chess/index.html                     games/dino/index.html     games/dungeon.html
+games/rooftop-snipers/index.html           games/spac/index.html     games/spacesh/index.html
+games/stack/index.html                     games/tunnel-rush/index.html
+games/woods.html                           games/zombie/index.html</pre>
+
+<h3>5. Untracked paths and live status</h3>
+<pre>$ git ls-files | wc -l
+681
+$ git log --all --oneline -- Games10 FlashGames Games9
+(no output: these folders were never tracked)
+$ curl -s -o /dev/null -L -m 15 -w '%{http_code}' &lt;each of 328 paths&gt;
+direct 200: 91 (58 of them .swf)
+301 then 200: 196 (directory redirects)
+404: 41</pre>
+<p>Two untracked paths that games.js uses are live: <code>/slope/</code> (200) and <code>/home/webb/</code> (200).</p>
+
+<h3>6. Backrooms</h3>
+<pre>games.js:  url: '...unity.html?game=$HOST/Games/backrooms'
+$ curl -s -o /dev/null -m 15 -w '%{http_code}' $HOST/games/backrooms.html
+200
+$ curl -s -o /dev/null -m 15 -w '%{http_code}' $HOST/Games/backrooms
+301   (then 200 after the slash redirect)
+# $HOST is the site origin of the yeet-games.github.io Pages site
+$ git ls-files games/backrooms.html
+games/backrooms.html</pre>
+
+<h3>7. Tracked HTML pages that games.js never links</h3>
+<p>These pages are not in <code>games.js</code>, so the sitemap does not list them. Examples: <code>games/chrome-dino.html</code>, <code>games/tetris.html</code>, <code>games/paperio.html</code>. The full set has 16 pages. The sitemap skips all of them, which is correct.</p>
+
+<h3>8. Dead links (404 live)</h3>
+<details>
+  <summary>Show the 41 paths</summary>
+  <pre>Games11/blockblast/game.html
+Games11/cat%20tennis
+Games11/madness.swf
+Games11/pizzatower
+Games11/polytrack/index.html
+Games2/20481
+Games2/align-4
+Games2/among-us
+Games2/circle
+Games2/colorun
+Games2/craftmine
+Games2/deal-or-no-deal
+Games2/economical
+Games2/economical2
+Games2/factoryballs
+Games2/getaway-shootout
+Games2/grindcraft
+Games2/madalin-stunt-cars-2
+Games2/madalin-stunt-cars-3
+Games2/push-your-luck/index.html
+Games2/q1k3
+Games2/rolly-vortex
+Games2/slope-2
+Games2/sm64
+Games2/spaceCompany
+Games2/stack-bump-3d
+Games2/swerve
+Games2/the-cube-master
+Games2/the-lost-ball
+Games2/townscaper
+Games2/wordle
+Games2/zelda3d
+Games6/idle-shark
+Games6/timothy
+RetroGames/Classic%20NES%20Donkey%20Kong.html
+RetroGames/MortalKombatRevelations.html
+RetroGames/smariokart.html
+Run3/tn6pS9dCf37xAhkJv
+cr
+pacman
+rating.html</pre>
+</details>
+
+<h2>Method</h2>
+<ol>
+  <li>Read <code>games.js</code> and listed every <code>url:</code> value (381).</li>
+  <li>Unwrapped loader links such as <code>games/game.html?game=</code>. Then mapped each path to a tracked file with the same rules as <code>scripts/generate-sitemap.py</code>, but written again from scratch.</li>
+  <li>Ran <code>scripts/generate-sitemap.py --check</code>. It passed.</li>
+  <li>Checked each sitemap URL and each untracked path with <code>curl</code> GET. No secret values were read or printed.</li>
+</ol>
+<p class="meta">Limit: the worktree is a clean copy of origin/master. The check compares git-tracked files. It did not read the main checkout, so untracked files there are not included.</p>
+
+</body>
+</html>
