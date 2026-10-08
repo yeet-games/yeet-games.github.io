@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>YG-621: games.js and sitemap.xml follow-up</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0 auto; max-width: 880px; padding: 24px; color: #1d1d1f; line-height: 1.5; }
+  h1 { font-size: 1.6em; margin-bottom: 0.2em; }
+  h2 { font-size: 1.2em; margin-top: 1.8em; border-bottom: 1px solid #d0d0d5; padding-bottom: 4px; }
+  .meta { color: #555; font-size: 0.92em; }
+  .answer { background: #f2f6fb; border-left: 4px solid #2b6cb0; padding: 12px 16px; }
+  .ask { background: #fdf6e3; border-left: 4px solid #b7791f; padding: 12px 16px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.94em; }
+  th, td { border: 1px solid #d0d0d5; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #f4f4f6; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; }
+  pre { background: #f6f6f8; border: 1px solid #e2e2e6; padding: 10px; overflow-x: auto; white-space: pre-wrap; }
+  details { margin: 8px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  .ok { color: #1e6b34; font-weight: 600; }
+  .fix { color: #2b6cb0; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>games.js and sitemap.xml: follow-up fixes</h1>
+<p class="meta">Task YG-621, follow-up from review YG-566. Branch <code>task-1618</code>, based on master at <code>b0c7d94</code>. Date 2026-10-08. Files changed: <code>games.js</code>, <code>sitemap.xml</code>. <code>$HOST</code> below means the origin of the yeet-games.github.io Pages site.</p>
+
+<h2>Findings</h2>
+<div class="answer">
+<ol>
+  <li><span class="ok">Match.</span> games.js and sitemap.xml list the same 14 game pages. No page is in one list and missing from the other.</li>
+  <li><span class="fix">Fixed.</span> 40 dead catalog entries are gone from games.js. Each one returned 404 live, twice. The catalog drops from 381 to 341 entries.</li>
+  <li><span class="fix">Correction.</span> The last report said 41 dead links. The real number is 40. <code>Games6/timothy</code> was a probe error. The URL is <code>Games6/timothy's-race</code>. The old check cut it at the apostrophe. The full path returns 200, so Timothy's Race stays.</li>
+  <li><span class="fix">Fixed.</span> Backrooms now links <code>games/backrooms</code> (lowercase). Before, it linked <code>Games/backrooms</code>. The new path resolves to the tracked file <code>games/backrooms.html</code>.</li>
+  <li><span class="fix">Updated.</span> The sitemap now lists <code>/games/backrooms.html</code>. It goes from 18 to 19 URLs. The generator check passes.</li>
+  <li><span class="ok">Unchanged.</span> 288 catalog entries (287 distinct paths) still point to files that git does not track. All of them returned 200 live today. The generator skips them by design. This question from the last report is still open.</li>
+</ol>
+</div>
+
+<div class="ask">
+<p><strong>Asks for rus</strong></p>
+<ol>
+  <li><strong>Backrooms content changes.</strong> Live <code>/Games/backrooms/</code> is a self-hosted Unity build. The tracked <code>games/backrooms.html</code> is an iframe to a third-party host (kdata1, <code>backroom16</code>). Players will now see the iframe version. Confirm this swap. The alternative is to keep the Unity build and add it to git.</li>
+  <li><strong>Merge and deploy.</strong> Review the branch <code>task-1618</code>. Merge and deploy if it looks right. Nothing is pushed or deployed.</li>
+  <li><strong>Untracked live paths.</strong> Tell us where the 287 untracked paths come from (Games2, Games10, FlashGames, and so on). The site serves them, but git master does not track them. If they should be in the sitemap, the generator needs another source.</li>
+  <li><strong>Removed games.</strong> The 40 removed entries are listed below. If you want any back, restore the game files first, then the entry.</li>
+</ol>
+</div>
+
+<h2>What changed</h2>
+<ol>
+  <li>Removed 40 entry blocks from games.js. Each block is the full <code>{ id, name, categories, url, imgSrc }</code> object. No other lines changed.</li>
+  <li>Changed one line in the Backrooms entry: <code>Games/backrooms</code> to <code>games/backrooms</code>.</li>
+  <li>Ran <code>scripts/generate-sitemap.py</code>. It added one <code>&lt;url&gt;</code> block for Backrooms.</li>
+</ol>
+<p>Cover images for the removed games stay in <code>cover/</code> and <code>img/</code>. Deleting files is out of scope here. One of them, <code>cover/Bitlife.png</code>, is still used. Hardcoded Bitlife cards in <code>index.html</code> and 7 other pages link <code>Games9/bitlife</code>, which is live. Only the catalog entry that pointed to <code>rating.html</code> is gone.</p>
+
+<h2>Evidence</h2>
+
+<h3>1. Dead-link recheck</h3>
+<p>The check unwraps loader links such as <code>games/game.html?game=...</code>. It keeps paths on this site that git does not track. It then requests each path live, following redirects. Spaces are sent as <code>%20</code>.</p>
+<pre>$ /usr/bin/python3 -I /tmp/yg621/dead.py "$PWD" | wc -l
+329          # untracked catalog entries, 328 distinct paths
+$ curl -s -o /dev/null -L -m 20 -w '%{http_code}' "$HOST/&lt;each path&gt;"
+280 x 200, 38 x 404, 10 x 000
+# the 10 "000" were paths with spaces; resent with %20:
+8 x 200, 2 x 404 (Games11/cat%20tennis, RetroGames/Classic%20NES%20Donkey%20Kong.html)
+# second pass on every non-200 path:
+40 x 404</pre>
+<pre>$ curl -s -o /dev/null -m 20 -w '%{http_code}' "$HOST/Games6/timothy"
+404
+$ curl -s -L -m 20 "$HOST/Games6/timothy's-race" | grep -o '&lt;title&gt;[^&lt;]*'
+&lt;title&gt;TImothy's Race | lbannana</pre>
+
+<h3>2. games.js after the edit</h3>
+<pre>$ node --check games.js; echo node=$?
+node=0
+$ grep -c "url:" games.js
+341
+$ grep -c "name:" games.js
+341
+$ git diff games.js | grep -c '^-    id:'
+40
+$ git diff --stat
+ games.js    | 282 +-----------------------------------------------------------
+ sitemap.xml |   5 ++
+ 2 files changed, 6 insertions(+), 281 deletions(-)</pre>
+<p>40 blocks of 7 lines is 280 lines. The 281st deleted line is the old Backrooms URL. A grep for each removed path in games.js returns nothing.</p>
+
+<h3>3. Backrooms</h3>
+<pre>games.js:55:  url: '$HOST/games/unity.html?game=$HOST/games/backrooms',
+$ git ls-files games/backrooms.html
+games/backrooms.html
+$ curl -s -o /dev/null -m 20 -w '%{http_code}' $HOST/games/backrooms.html
+200
+$ curl -s -o /dev/null -m 15 -w '%{http_code} %{redirect_url}' $HOST/Games/backrooms
+301 $HOST/Games/backrooms/     # Unity build, not in git
+$ grep -o '&lt;iframe[^&gt;]*&gt;' games/backrooms.html
+&lt;iframe id="game" ... src="(kdata1 host)/2022/05/backroom16/?key=y8&amp;value=default"&gt;</pre>
+
+<h3>4. Sitemap</h3>
+<pre>$ /usr/bin/python3 scripts/generate-sitemap.py
+wrote sitemap.xml (19 URLs)
+$ /usr/bin/python3 scripts/generate-sitemap.py --check; echo exit=$?
+sitemap.xml is current (19 URLs)
+exit=0
+$ git diff sitemap.xml
++  &lt;url&gt;
++    &lt;loc&gt;$HOST/games/backrooms.html&lt;/loc&gt;
++    &lt;lastmod&gt;2025-05-28&lt;/lastmod&gt;
++    &lt;priority&gt;0.80&lt;/priority&gt;
++  &lt;/url&gt;</pre>
+<p>The system <code>python3</code> on this machine fails on a mise config parse error. <code>/usr/bin/python3</code> works.</p>
+
+<h3>5. Catalog against sitemap</h3>
+<pre>$ /usr/bin/python3 -I -c '... game_pages() vs sitemap &lt;loc&gt; ...'
+catalog game pages served by repo: 15     # 14 games plus roblox.html
+sitemap game urls: 14 | only in sitemap: [] | only in catalog: []</pre>
+
+<h3>6. Other references to removed games</h3>
+<p>No other tracked page or script links a removed path. <code>script.js</code> looks up no game card by id.</p>
+<pre>$ for d in Games2/ RetroGames/ Games11/ Run3/ rating.html; do grep -lF "$d" &lt;tracked html/js/css/json, minus games.js&gt;; done
+(no output)
+$ grep -n "getElementById\|querySelector" script.js
+(only SearchBox, nonefound, menu ids and .box; no game ids)
+$ grep -n -i bitlife index.html
+index.html:234:  href="/games/game.html?game=bitlife&amp;&amp;url=$HOST/games/game.html?game=/Games9/bitlife"
+$ curl -s -o /dev/null -L -m 20 -w '%{http_code}' $HOST/Games9/bitlife
+200</pre>
+
+<h3>7. Removed entries</h3>
+<details>
+<summary>Show the 40 removed entries</summary>
+<table>
+<tr><th>Name</th><th>Dead path</th></tr>
+<tr><td>Crossy Road</td><td><code>cr/</code></td></tr>
+<tr><td>Block Blast (Clone)</td><td><code>Games11/blockblast/game.html</code></td></tr>
+<tr><td>Cat Tennis</td><td><code>Games11/cat tennis</code></td></tr>
+<tr><td>Madness: Project Nexus (Classic)</td><td><code>Games11/madness.swf</code></td></tr>
+<tr><td>Pizza Tower</td><td><code>Games11/pizzatower</code></td></tr>
+<tr><td>Polytrack</td><td><code>Games11/polytrack/index.html</code></td></tr>
+<tr><td>2048</td><td><code>Games2/20481</code></td></tr>
+<tr><td>Align 4</td><td><code>Games2/align-4</code></td></tr>
+<tr><td>Among Us (Fan Made)</td><td><code>Games2/among-us</code></td></tr>
+<tr><td>Circles</td><td><code>Games2/circle</code></td></tr>
+<tr><td>Colorun</td><td><code>Games2/colorun</code></td></tr>
+<tr><td>Craftmine</td><td><code>Games2/craftmine</code></td></tr>
+<tr><td>Deal Or No Deal</td><td><code>Games2/deal-or-no-deal</code></td></tr>
+<tr><td>Economical</td><td><code>Games2/economical</code></td></tr>
+<tr><td>Economical 2</td><td><code>Games2/economical2</code></td></tr>
+<tr><td>Factory Balls</td><td><code>Games2/factoryballs</code></td></tr>
+<tr><td>Gataway Shootout</td><td><code>Games2/getaway-shootout</code></td></tr>
+<tr><td>Grind Craft</td><td><code>Games2/grindcraft</code></td></tr>
+<tr><td>Madalin Stunt Cars 2</td><td><code>Games2/madalin-stunt-cars-2</code></td></tr>
+<tr><td>Madalin Stunt Cars 3</td><td><code>Games2/madalin-stunt-cars-3</code></td></tr>
+<tr><td>Push Your Luck</td><td><code>Games2/push-your-luck/index.html</code></td></tr>
+<tr><td>Q1K3</td><td><code>Games2/q1k3</code></td></tr>
+<tr><td>Rolly Vortex</td><td><code>Games2/rolly-vortex</code></td></tr>
+<tr><td>Slope 2</td><td><code>Games2/slope-2</code></td></tr>
+<tr><td>Super Mario 64</td><td><code>Games2/sm64</code></td></tr>
+<tr><td>Space Company</td><td><code>Games2/spaceCompany</code></td></tr>
+<tr><td>Stack Bump 3D</td><td><code>Games2/stack-bump-3d</code></td></tr>
+<tr><td>Swerve</td><td><code>Games2/swerve</code></td></tr>
+<tr><td>The Cube</td><td><code>Games2/the-cube-master</code></td></tr>
+<tr><td>The Lost Ball</td><td><code>Games2/the-lost-ball</code></td></tr>
+<tr><td>Townscaper</td><td><code>Games2/townscaper</code></td></tr>
+<tr><td>Wordle</td><td><code>Games2/wordle</code></td></tr>
+<tr><td>Zelda 3D</td><td><code>Games2/zelda3d</code></td></tr>
+<tr><td>Idle Shark</td><td><code>Games6/idle-shark/</code></td></tr>
+<tr><td>Pacman</td><td><code>pacman</code></td></tr>
+<tr><td>Bitlife</td><td><code>rating.html</code></td></tr>
+<tr><td>Donkey Kong GBA</td><td><code>RetroGames/Classic NES Donkey Kong.html</code></td></tr>
+<tr><td>Mortal Kombat Revelations</td><td><code>RetroGames/MortalKombatRevelations.html</code></td></tr>
+<tr><td>SNES Mario Kart</td><td><code>RetroGames/smariokart.html</code></td></tr>
+<tr><td>Run 3</td><td><code>Run3/tn6pS9dCf37xAhkJv</code></td></tr>
+</table>
+</details>
+
+<h2>Next steps</h2>
+<ol>
+  <li>rus answers the Backrooms ask above.</li>
+  <li>rus reviews and merges <code>task-1618</code>, then deploys.</li>
+  <li>After deploy, submit the 19-URL sitemap in Search Console.</li>
+  <li>Give <code>games/backrooms.html</code> the same title and description treatment the other game pages got in <code>67c90b9</code>. Its title is still "Sz Games".</li>
+  <li>Decide the source for the 287 untracked paths. Then change the generator if they belong in the sitemap.</li>
+</ol>
+<p>No push, no deploy, no DNS or Cloudflare change. There is no <code>docs/WRITING.md</code> in this repo. This report follows the stated style: short sentences and numbered steps.</p>
+</body>
+</html>
