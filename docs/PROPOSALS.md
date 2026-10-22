@@ -1,6 +1,6 @@
 # Proposals
 
-Open items from the 2026-10 audit. None is done in the audit PR, except the sitemap regenerate.
+Open items from the 2026-10 audit. None is done in the audit PR.
 Effort: S = under an hour, M = a few hours.
 
 | # | What | Gain | Effort | Risk |
