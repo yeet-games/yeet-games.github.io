@@ -3,15 +3,16 @@
 > "The Best Place To Play over 100+ Games in school or at home." — site meta description
 
 Yeet Games is an **unblocked games portal** served as a static site on GitHub Pages at
-<https://yeet-games.github.io>. It hosts a searchable catalog of ~381 games (per `games.js`)
+<https://yeet-games.github.io>. It hosts a searchable catalog of ~340 games (per `games.js`)
 including HTML5 games, Flash games (played via Ruffle), Unity web builds, an emulator page,
 and Roblox content, wrapped in a YouTube-style grid UI.
 
 ## Status
 
-- **Active.** 9 commits on `master`; first commit `bc145a1` (2025-05-28, "first commit"),
-  latest commit `61eba0e` (2026-05-27, "remove adsterra for now. too many complains").
-- No CI/CD, no release process, no issue/PR templates.
+- **Maintenance.** 21 commits on `master`; first commit `bc145a1` (2025-05-28), latest
+  `87077fc` (2026-10-14, SEO work). Most recent work is SEO (sitemap, canonicals, game links).
+- No CI/CD, no release process, no issue/PR templates. Audit: 2026-10-16, see
+  `docs/AUDIT-2026-10.md`.
 
 ## Stack
 
@@ -23,7 +24,8 @@ Pure static site — **no build system, no package manager, no framework**:
 - [Ruffle](https://ruffle.rs) Flash emulator loaded from `unpkg.com/@ruffle-rs/ruffle` for `.swf` games
 - [Plausible Analytics](https://stats.senty.com.au) (`data-domain="yeet-games.github.io"`, self-hosted instance)
 - Material Icons (Google Fonts) and Font Awesome (CDN)
-- Ad tags (Adsterra / highperformanceformat.com) inline in HTML + `ads.txt` (AdSense and partners)
+- Ad tags (Adsterra / highperformanceformat.com) inline in `index.html` + `ads.txt` (AdSense and partners)
+- `scripts/generate-sitemap.py` (Python 3, standard library only) builds `sitemap.xml`
 - Web app manifest: `manifest.json`
 
 ## Prerequisites
@@ -64,6 +66,8 @@ in the HTML files (names only):
 
 ## Build / test
 
+- **Sitemap:** after changing pages or `games.js`, run `python3 scripts/generate-sitemap.py`
+  (`--check` fails if `sitemap.xml` is stale).
 - **Build:** none. Commit and push; GitHub Pages serves the files as-is.
 - **Test:** no automated test suite exists. Manual smoke checks:
   - `index.html` loads, search box filters the grid, category chips filter, thumbnails fall
@@ -77,7 +81,7 @@ in the HTML files (names only):
 
 ```
 index.html            Home: search, category chips, featured games, game grid
-games.js              Game catalog (gamesData array, ~381 entries)
+games.js              Game catalog (gamesData array, ~340 entries)
 script.js             Renders grid; debounced Levenshtein search; category filter
 style.css             Site styling
 games/game.html       Generic game loader: fullscreen iframe (?game=<url>), loading screen
@@ -103,39 +107,47 @@ loader pages via the `?game=` query parameter.
 
 - GitHub Pages **user/org site**: repo name `yeet-games.github.io` → Pages serves the
   root of the default branch (`master`).
-- No `.github/workflows`, no `gh-pages` branch, no `CNAME` (site lives at
-  `yeet-games.github.io`).
+- Pages source is branch `master`, path `/` (legacy build: the `pages build and deployment`
+  run, last success 2026-10-15). No `.github/workflows`, no `gh-pages` branch, no `CNAME`.
+- No server, no container, no Kamal. `hosts` is empty in the fleet `projects.toml`.
 - **Deploy = push to `master`:**
 
 ```sh
 git push origin master
 ```
 
+## Connected services
+
+- **Plausible** (self-hosted, `stats.senty.com.au`): site `yeet-games.github.io`. One page
+  (`terms-of-service.html`) still reports `sz-games.github.io`.
+- **my-seo / Google Search Console:** URL-prefix property `https://yeet-games.github.io/`
+  (SEO and content history lives in my-seo annotations, not here).
+- **Ads:** Adsterra tags in `index.html`, AdSense and partner lines in `ads.txt`. Revenue is in dash.
+- No database, no R2/S3, no secrets, no other Senty services.
+
+## Backups
+
+Static site: **the Git repo is the backup** (GitHub `yeet-games/yeet-games.github.io`; ~220 MB
+packed). No state on any server. Nothing to restore except a `git clone`.
+
+## Docs
+
+- `docs/ARCHITECTURE.md`: components, data flow, services
+- `docs/CHANGELOG-TECH.md`: technical changes with dates
+- `docs/PROPOSALS.md`: open fixes and upgrades
+- `docs/AUDIT-2026-10.md`: the audit report (2026-10-16)
+
 ## Maintenance notes
 
-- `manifest.json` is stale: it still declares the old name `Sz-Games` and references
-  `icons/manifest-icon-192.maskable.png` / `icons/manifest-icon-512.maskable.png`, which
-  do not exist in the repo. **TODO:** rename to Yeet Games and add the icons.
-- Leftover `Sz-Games` branding: `404.html` still reports analytics to
-  `data-domain="sz-games.github.io"` and uses a `sz-games/home` favicon; `games/index.html`
-  contains a link back to `https://sz-games.github.io`. The site appears to have been
-  renamed from Sz-Games to Yeet Games. **TODO:** update or remove these references.
-- `/GobalSettings.js` is referenced by `Privacy-Policy.html`, `games/Emulator.html`,
-  `games/game.html`, `games/gameT.html`, and `games/unity.html` but **is not present in
-  the repo** — those pages will request a 404. **TODO:** add the file or remove the tags.
-- Ad state: the latest commit removed Adsterra snippets ("too many complains"), but
-  `index.html` and `games/game.html` still include `highperformanceformat.com` ad tags.
-  **TODO:** verify the intended ad configuration.
-- Some catalog entries point to paths not present in the repo (e.g., `/home/webb/`,
-  `/slope/`, `/Games9/bitlife`, `/storage3/AWeb/`) or to external sites. **TODO:** verify
-  every catalog URL resolves.
-- Repo size is ~310 MB (vendored game assets). Consider large-file hygiene (Git LFS) if it
-  grows. **TODO** (if desired).
-- No automated tests or CI. **TODO** (if desired): add a GitHub Actions smoke check.
+Open problems are listed, with effort and risk, in `docs/PROPOSALS.md`. In short:
+`manifest.json` still says `Sz-Games` and points to icons that do not exist; `/GobalSettings.js`
+is requested but missing (404); `terms-of-service.html` and `404.html`/`games/index.html` carry
+old Sz-Games references; Adsterra tags are still in `index.html` despite the May 2026 commit
+that removed them; some catalog URLs may still be dead.
 
 ## Credits & license
 
-- Site maintained by Ruslan Osipov (`Rus <rusya13@gmail.com>` per git history).
+- Owner: Rus (Ruslan Osipov, per git history). Fleet project `yeet-games`, todo prefix `YG`.
 - **No repository-level `LICENSE` file and no credits section exist in the site itself
   (Unknown).** Do not assume a license for the site code.
 - Third-party game bundles are vendored under `games/` and retain their own licenses,
