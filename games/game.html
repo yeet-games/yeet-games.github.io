@@ -514,6 +514,14 @@
       })
 
       // Get the text element
+      var safeGameUrl = function (value) {
+        try {
+          var u = new URL(value, window.location.href)
+          return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : 'about:blank'
+        } catch (e) {
+          return 'about:blank'
+        }
+      }
       var textElement = document.getElementById('game')
       textElement.addEventListener('beforeunload', function (event) {
         event.preventDefault()
@@ -524,7 +532,7 @@
       // Check for the presence of the "text" parameter in the URL
       if (currentUrl.searchParams.has('game')) {
         // Set the text of the element to the value of the "text" parameter
-        textElement.src = currentUrl.searchParams.get('game')
+        textElement.src = safeGameUrl(currentUrl.searchParams.get('game'))
       }
 
       console.log(currentUrl.searchParams.get('game'))
